@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
 from .models import Product
 from .models import Order, OrderItem
@@ -64,6 +65,9 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     data = request.data
+
+    if not validate_products(data.get('products')):
+        return Response({'Error': 'Error in products validator'}, status=status.HTTP_400_BAD_REQUEST)
     
     order = Order.objects.create(
         first_name=data['firstname'],
@@ -80,3 +84,10 @@ def register_order(request):
         )
 
     return Response(data)
+
+
+def validate_products(products):
+    if not isinstance(products, list):
+        return False
+    if not products:
+        return False
