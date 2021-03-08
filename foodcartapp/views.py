@@ -1,4 +1,5 @@
 import json
+from django.db.models.fields.related import OneToOneField
 
 from django.http import JsonResponse
 from django.templatetags.static import static
@@ -66,8 +67,8 @@ def product_list_api(request):
 def register_order(request):
     data = request.data
 
-    if not validate_products(data.get('products')):
-        return Response({'Error': 'Error in products validator'}, status=status.HTTP_400_BAD_REQUEST)
+    if not validate_order(data):
+        return Response({'Error': 'Validate error'}, status=status.HTTP_400_BAD_REQUEST)
     
     order = Order.objects.create(
         first_name=data['firstname'],
@@ -86,8 +87,31 @@ def register_order(request):
     return Response(data)
 
 
-def validate_products(products):
-    if not isinstance(products, list):
+def validate_order(order):
+    products = order.get('products')
+    first_name = order.get('firstname')
+    last_name = order.get('lastname')
+    address = order.get('address')
+    phone_number = order.get('phonenumber')
+
+    if any([
+        not isinstance(products, list),
+        not isinstance(first_name, str),
+        not isinstance(last_name, str),
+        not isinstance(address, str),
+        not isinstance(phone_number, str),
+        not products,
+        not first_name,
+        not last_name,
+        not address,
+        not phone_number,
+    ]):
         return False
-    if not products:
-        return False
+
+    for product in products:
+        product_id = product['product']
+
+        if not isinstance(product_id, int) or not Product.objects.filter(id=product_id):
+            return False
+    
+    return True
