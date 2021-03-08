@@ -9,6 +9,7 @@ from rest_framework import status
 
 from .models import Product
 from .models import Order, OrderItem
+from .serializer import OrderSerializer
 
 
 def banners_list_api(request):
@@ -65,53 +66,21 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    data = request.data
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-    if not validate_order(data):
-        return Response({'Error': 'Validate error'}, status=status.HTTP_400_BAD_REQUEST)
-    
     order = Order.objects.create(
-        first_name=data['firstname'],
-        last_name=data['lastname'],
-        phone_number=data['phonenumber'],
-        address=data['address']
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        phonenumber=serializer.validated_data['phonenumber'],
+        address=serializer.validated_data['address']
     )
 
-    for product in data['products']:
+    for product in serializer.validated_data['products']:
         OrderItem.objects.create(
             order=order,
             product=Product.objects.get(id=product['product']),
             quantity=product['quantity']
         )
 
-    return Response(data)
-
-
-def validate_order(order):
-    products = order.get('products')
-    first_name = order.get('firstname')
-    last_name = order.get('lastname')
-    address = order.get('address')
-    phone_number = order.get('phonenumber')
-
-    if any([
-        not isinstance(products, list),
-        not isinstance(first_name, str),
-        not isinstance(last_name, str),
-        not isinstance(address, str),
-        not isinstance(phone_number, str),
-        not products,
-        not first_name,
-        not last_name,
-        not address,
-        not phone_number,
-    ]):
-        return False
-
-    for product in products:
-        product_id = product['product']
-
-        if not isinstance(product_id, int) or not Product.objects.filter(id=product_id):
-            return False
-    
-    return True
+    return Response(serializer.validated_data)
