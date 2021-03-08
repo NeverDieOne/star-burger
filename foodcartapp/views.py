@@ -83,4 +83,4 @@ def register_order(request):
             quantity=product['quantity']
         )
 
-    return Response(serializer.validated_data)
+    return Response({"id": order.id, **serializer.data})

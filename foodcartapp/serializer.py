@@ -10,7 +10,8 @@ class ProductSerializer(Serializer):
 class OrderSerializer(Serializer):
     products = ListField(
         child=ProductSerializer(),
-        allow_empty=False
+        allow_empty=False,
+        write_only=True
     )
     firstname = CharField()
     lastname = CharField()
