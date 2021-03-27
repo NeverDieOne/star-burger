@@ -93,7 +93,8 @@ class Order(models.Model):
     lastname = models.CharField('Фамилия', max_length=20, db_index=True)
     phonenumber = PhoneNumberField('Номер телефона', db_index=True)
     address = models.CharField('Адрес', max_length=255, db_index=True)
-    status = models.CharField('Статус заказа', choices=STATUSES, default=UNPROCESSED, max_length=6)
+    status = models.CharField('Статус заказа', choices=STATUSES, default=UNPROCESSED, max_length=6, db_index=True)
+    comment = models.TextField('Комментарий', blank=True)
     objects = OrderQuerySet.as_manager()
 
     def __str__(self):
