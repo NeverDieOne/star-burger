@@ -1,11 +1,8 @@
-import json
-from django.db.models.fields.related import OneToOneField
-
 from django.http import JsonResponse
 from django.templatetags.static import static
+from django.db import transaction
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from .models import Product
 from .models import Order, OrderItem
@@ -65,6 +62,7 @@ def product_list_api(request):
 
 
 @api_view(['POST'])
+@transaction.atomic
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
