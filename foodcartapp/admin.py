@@ -11,6 +11,11 @@ from .models import Order
 from .models import OrderItem
 
 
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    pass
+
+
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
