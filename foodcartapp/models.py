@@ -105,18 +105,21 @@ class OrderQuerySet(models.QuerySet):
 
 class Order(models.Model):
     UNPROCESSED = 'Unproc'
-    PROCESSED = 'Proc'
-    CASH = 'Cash'
-    ELECTRONIC = 'Electro'
-
+    DELIVERING = 'Proc'
+    DELIVERED = 'Done'
     STATUSES = [
         (UNPROCESSED, 'Необработанный'),
-        (PROCESSED, 'Обработанный')
+        (DELIVERING, 'Доставляется'),
+        (DELIVERED, 'Доставлен')
     ]
 
+    CASH = 'Cash'
+    ELECTRONIC = 'Electro'
+    UNDEFINED = 'Undef'
     PAYMENTS = [
         (CASH, 'Наличными'),
-        (ELECTRONIC, 'По карте')
+        (ELECTRONIC, 'По карте'),
+        (UNDEFINED, 'Не выбрано')
     ]
 
     firstname = models.CharField('Имя', max_length=20, db_index=True)
@@ -124,7 +127,7 @@ class Order(models.Model):
     phonenumber = PhoneNumberField('Номер телефона', db_index=True)
     address = models.CharField('Адрес', max_length=255, db_index=True)
     status = models.CharField('Статус заказа', choices=STATUSES, default=UNPROCESSED, max_length=6, db_index=True)
-    payment = models.CharField('Метод оплаты', choices=PAYMENTS, default=CASH, max_length=7, db_index=True)
+    payment = models.CharField('Метод оплаты', choices=PAYMENTS, default=UNDEFINED, max_length=7, db_index=True)
 
     comment = models.TextField('Комментарий', blank=True)
 
