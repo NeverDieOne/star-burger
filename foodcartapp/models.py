@@ -84,10 +84,17 @@ class OrderQuerySet(models.QuerySet):
 class Order(models.Model):
     UNPROCESSED = 'Unproc'
     PROCESSED = 'Proc'
+    CASH = 'Cash'
+    ELECTRONIC = 'Electro'
 
     STATUSES = [
         (UNPROCESSED, 'Необработанный'),
         (PROCESSED, 'Обработанный')
+    ]
+
+    PAYMENTS = [
+        (CASH, 'Наличными'),
+        (ELECTRONIC, 'По карте')
     ]
 
     firstname = models.CharField('Имя', max_length=20, db_index=True)
@@ -95,7 +102,10 @@ class Order(models.Model):
     phonenumber = PhoneNumberField('Номер телефона', db_index=True)
     address = models.CharField('Адрес', max_length=255, db_index=True)
     status = models.CharField('Статус заказа', choices=STATUSES, default=UNPROCESSED, max_length=6, db_index=True)
+    payment = models.CharField('Метод оплаты', choices=PAYMENTS, default=CASH, max_length=7, db_index=True)
+
     comment = models.TextField('Комментарий', blank=True)
+
     registered_at = models.DateTimeField('Время заказа', default=timezone.now, db_index=True)
     called_at = models.DateTimeField('Время звонка', blank=True, null=True, db_index=True)
     delivered_at = models.DateTimeField('Время доставки', blank=True, null=True, db_index=True)
