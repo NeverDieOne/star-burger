@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 
@@ -74,20 +74,17 @@ class RestaurantMenuItem(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def fetch_with_restaurant(self):
-        menu_items = RestaurantMenuItem.objects.select_related('restaurant', 'product') \
+        menu_items = RestaurantMenuItem.objects.filter(availability=True) \
+            .select_related('restaurant', 'product') \
             .prefetch_related('product__order_items__order')
 
         orders = set()
-        handled_order_items = set()
         for menu_item in menu_items:
-            if not menu_item.availability:
-                continue
             for order_item in menu_item.product.order_items.all():
                 try:
                     order_item.order.restaurants
                 except AttributeError:
                     order_item.order.restaurants = []
-                    order_item.order.total_price = 0
 
                 orders.add(order_item.order)
 
@@ -95,12 +92,14 @@ class OrderQuerySet(models.QuerySet):
                 if restaurant_name not in order_item.order.restaurants:
                     order_item.order.restaurants.append(restaurant_name)
 
-                if order_item not in handled_order_items:
-                    order_item.order.total_price += order_item.price
-                    handled_order_items.add(order_item)
+        orders = self.filter(id__in=[order.id for order in orders])
 
-        sorted_orders = sorted(list(orders), key=lambda order: order.id)
-        return sorted_orders
+        return orders.annotate(
+            total_price=Sum(
+                F('order_items__product__price') * F('order_items__quantity'),
+                output_field=models.DecimalField()
+            ),
+        )
 
 
 class Order(models.Model):
